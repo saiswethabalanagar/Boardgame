@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: my-python-app
-        image: your-ecr-repo-url.amazonaws.com/my-python-app:latest
+        image: 472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app.amazonaws.com/my-python-app:latest
         ports:
         - containerPort: 80
