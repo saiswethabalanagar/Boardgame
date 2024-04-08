@@ -5,14 +5,11 @@ pipeline {
         jdk 'jdk17'
     }
     environment {
-        
-        AWS_ACCESS_KEY_ID = credentials('aws_credentials')
-        AWS_SECRET_ACCESS_KEY = credentials('aws_credentials')
         ECR_URL = '472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app'
         AWS_REGION = 'us-east-2'
         GITHUB_USERNAME = 'saiswethabalanagar'
         GITHUB_PASSWORD = '2107@Swetha'
-        DOCKER_IMAGE = 'myapp'
+        DOCKER_IMAGE = 'my-python-app'
     }
     stages {
         
@@ -36,26 +33,22 @@ pipeline {
         }
         
         stage('Logging into AWS ECR') {
-            steps {
-                script {
-                    sh "aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 472040684681.dkr.ecr.us-east-2.amazonaws.com"
-                    
-                }
-                
-            }
-            
+    steps {
+        script {
+            def ecrLogin = sh(script: 'aws ecr get-login-password --region us-east-2', returnStdout: true).trim()
+            sh "docker login --username AWS --password $ecrLogin 472040684681.dkr.ecr.us-east-2.amazonaws.com"
         }
-
+    }
+}
 
         stage('Push to ECR') {
-            steps {
-                script {
-                    sh "docker tag myapp:latest 472040684681.dkr.ecr.us-east-2.amazonaws.com/myapp:latest"
-                    sh "docker push 472040684681.dkr.ecr.us-east-2.amazonaws.com/myapp:latest"
-                    }
-                }
-            }
+    steps {
+        script {
+            docker tag $DOCKER_IMAGE $ECR_URL
+            docker push $ECR_URL
         }
+    }
+}
         
     }
-
+}
