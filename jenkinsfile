@@ -1,18 +1,14 @@
 pipeline {
     agent any
-    tools{
-        maven 'maven3'
-        jdk 'jdk17'
-    }
     environment {
         ECR_URL = '472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app'
         AWS_REGION = 'us-east-2'
         GITHUB_USERNAME = 'saiswethabalanagar'
         GITHUB_PASSWORD = '2107@Swetha'
         DOCKER_IMAGE = 'my-python-app'
+        KUBECONFIG = "${WORKSPACE}/kubeconfig.yaml"
     }
     stages {
-        
         stage('gitcheckout') {
             steps {
                 git branch: 'main', changelog: false, poll: false, url: 'https://github.com/saiswethabalanagar/Boardgame.git'
@@ -20,7 +16,7 @@ pipeline {
         }
         stage('mvn_Build') {
             steps {
-                sh 'mvn package '
+                sh 'mvn package'
             }
         }
         stage('Build') {
@@ -31,24 +27,37 @@ pipeline {
                 }
             }
         }
-        
         stage('Logging into AWS ECR') {
-    steps {
-        script {
-            def ecrLogin = sh(script: 'aws ecr get-login-password --region us-east-2', returnStdout: true).trim()
-            sh "docker login --username AWS --password $ecrLogin 472040684681.dkr.ecr.us-east-2.amazonaws.com"
+            steps {
+                script {
+                    def ecrLogin = sh(script: 'aws ecr get-login-password --region us-east-2', returnStdout: true).trim()
+                    sh "docker login --username AWS --password $ecrLogin $ECR_URL"
+                }
+            }
         }
-    }
-}
-
         stage('Push to ECR') {
-    steps {
-        script {
-            docker tag $DOCKER_IMAGE $ECR_URL
-            docker push $ECR_URL
+            steps {
+                script {
+                    def dockerImage = docker.build("$DOCKER_IMAGE:latest")
+                    docker.withRegistry("https://$ECR_URL", "ecr:us-east-2:my-ecr-credential-id") {
+                        dockerImage.push("latest")
+                    }
+                }
+            }
         }
-    }
-}
-        
+        stage('Deploy to EKS') {
+            steps {
+                script {
+                    // Update Kubernetes config to use the correct cluster
+                    sh "aws eks --region $AWS_REGION update-kubeconfig --name my-eks22 --kubeconfig $KUBECONFIG"
+
+                    // Apply the deployment YAML
+                    sh "kubectl apply -f deployment.yaml --kubeconfig $KUBECONFIG"
+
+                    // Apply the service YAML
+                    sh "kubectl apply -f service.yaml --kubeconfig $KUBECONFIG"
+                }
+            }
+        }
     }
 }
