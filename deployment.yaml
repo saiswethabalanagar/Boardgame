@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-python-app
+  name: myapp
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: my-python-app
+      app: myapp
   template:
     metadata:
       labels:
-        app: my-python-app
+        app: myapp
     spec:
       containers:
-      - name: my-python-app
-        image: 472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app:latest
+      - name: myapp
+        image: 472040684681.dkr.ecr.us-east-2.amazonaws.com/myapp:latest
         ports:
         - containerPort: 80
