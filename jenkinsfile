@@ -12,7 +12,7 @@ pipeline {
         AWS_REGION = 'us-east-2'
         GITHUB_USERNAME = 'saiswethabalanagar'
         GITHUB_PASSWORD = '2107@Swetha'
-        DOCKER_IMAGE = 'my-python-app'
+        DOCKER_IMAGE = 'myapp'
     }
     stages {
         
@@ -50,8 +50,8 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 script {
-                    sh "docker tag my-python-app:latest 472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app:latest"
-                    sh "docker push 472040684681.dkr.ecr.us-east-2.amazonaws.com/my-python-app:latest"
+                    sh "docker tag myapp:latest 472040684681.dkr.ecr.us-east-2.amazonaws.com/myapp:latest"
+                    sh "docker push 472040684681.dkr.ecr.us-east-2.amazonaws.com/myapp:latest"
                     }
                 }
             }
